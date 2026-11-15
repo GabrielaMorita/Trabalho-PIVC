@@ -80,6 +80,3 @@ public/models/  pesos dos modelos (carregados localmente, sem internet)
 - Os documentos do cofre são fictícios.
 - O limite de distância (0,50) é ajustável em Configurações; documente os testes de FAR/FRR que você fizer.
 
-## face-id/
-
-Pasta `face-id/` com o projeto FastAPI + React (DeepFace/Postgres) incluído junto, sem ligação com o app acima. Veja `face-id/README.md`.
