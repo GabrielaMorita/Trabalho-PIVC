@@ -1,9 +1,5 @@
 import { LEVELS } from './constants.js';
 
-/** Regras de permissão do cofre.
- *  Nível 1: compartimento geral.
- *  Nível 2: geral + compartimento da própria divisão.
- *  Nível 3 (ministro): todos os compartimentos. */
 export function canAccess(user, target) {
   if (!user) return { ok: false, reason: 'Rosto não reconhecido' };
   if (user.level === 3) return { ok: true };
@@ -27,7 +23,7 @@ export function targetLabel(t) {
   return `${LEVELS[t.level].short} · ${LEVELS[t.level].title}`;
 }
 
-/** Valida cadastro. Retorna lista de erros em português. */
+/** Valida cadastro */
 export function validateUser(form, users, editingId) {
   const errors = [];
   if (!form.name.trim() || form.name.trim().length < 3) errors.push('Informe o nome completo (mínimo 3 letras).');

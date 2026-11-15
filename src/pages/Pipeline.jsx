@@ -3,7 +3,7 @@ import { useApp } from '../AppContext.jsx';
 import { useCamera } from '../hooks/useCamera.js';
 import { useEngine } from '../hooks/useEngine.js';
 import { detectFaces, identify } from '../lib/faceEngine.js';
-import { eyeAspect, yawIndex } from '../lib/liveness.js';
+import { yawIndex } from '../lib/liveness.js';
 import {
   drawGray, drawHistogram, equalize, gaussian3, grabFrame, histogram, laplacianVariance, meanOf,
   rgbHistograms, skinMask, sobel, toGray,
@@ -114,6 +114,9 @@ export default function Pipeline() {
       }
 
       if (p >= 3) {
+        // O detector e o reconhecimento recebem o quadro original em RGB.
+        // As operações clássicas acima são demonstradas como análises complementares
+        // e não são passadas como entrada para a rede neural.
         const faces = await detectFaces(src, { inputSize: settings.inputSize, descriptors: p >= 4 });
         const k = w / fr.srcW;
         const f = faces[0];
@@ -230,7 +233,7 @@ export default function Pipeline() {
     <>
       <header className="page-head">
         <h1>Laboratório de processamento de imagem</h1>
-        <p>As cinco fases da APS rodando ao vivo sobre a câmera ou sobre uma foto. Use esta tela para mostrar cada etapa na apresentação.</p>
+        <p>Demonstração das cinco fases da APS sobre a câmera ou uma foto. As técnicas clássicas de processamento são exibidas junto à detecção neural para mostrar a função de cada método.</p>
       </header>
 
       <div className="flow" role="tablist" aria-label="Fases do processamento">
@@ -290,7 +293,7 @@ export default function Pipeline() {
           <>
             <div className="explain">
               <h2>2 · Pré-processamento</h2>
-              <p>Prepara a imagem: converte para escala de cinza (0,299 R + 0,587 G + 0,114 B), equaliza o histograma para compensar iluminação ruim e aplica um filtro gaussiano 3×3 para reduzir ruído do sensor.</p>
+              <p>O quadro capturado é convertido para escala de cinza (0,299 R + 0,587 G + 0,114 B). Em seguida, o histograma é equalizado para melhorar o contraste e o filtro gaussiano 3×3 suaviza pequenas variações. Nesta demonstração, essas operações são calculadas e exibidas para análise; o detector facial continua recebendo o quadro original em RGB.</p>
             </div>
             <div className="figs three">
               <Canvas name="gray" cv={cv} label="Escala de cinza" /><Canvas name="eq" cv={cv} label="Equalização de histograma" /><Canvas name="blur" cv={cv} label="Filtro gaussiano 3×3" />
@@ -311,7 +314,7 @@ export default function Pipeline() {
           <>
             <div className="explain">
               <h2>3 · Segmentação</h2>
-              <p>Separa o rosto do fundo. Um detector CNN (Tiny Face Detector) localiza a caixa do rosto. Ao lado, duas técnicas clássicas para comparação: máscara de pele no espaço YCbCr e bordas de Sobel.</p>
+              <p>O Tiny Face Detector localiza o rosto no quadro original e delimita sua região por uma caixa. Em paralelo, a máscara YCbCr classifica pixels com tonalidades compatíveis com pele, enquanto o operador de Sobel destaca as bordas da imagem. Essas técnicas clássicas são análises complementares; não são entradas do detector neural.</p>
             </div>
             <div className="figs">
               <Canvas name="detect" cv={cv} label="Rosto localizado" caption="fundo escurecido" />
@@ -331,7 +334,7 @@ export default function Pipeline() {
           <>
             <div className="explain">
               <h2>4 · Extração de características</h2>
-              <p>Transforma o rosto em números. Primeiro, 68 pontos de referência (contorno, sobrancelhas, nariz, olhos, boca). Depois, uma rede ResNet resume o rosto em um vetor de 128 valores: é essa “impressão digital facial” que será comparada.</p>
+              <p>Com o rosto localizado, a rede de landmarks identifica 68 pontos de referência (contorno, sobrancelhas, nariz, olhos e boca). A rede de reconhecimento facial, aplicada ao quadro original, gera um vetor de 128 valores. Essa representação numérica é a que será comparada com as amostras cadastradas.</p>
             </div>
             <div className="figs lm">
               <Canvas name="lm" cv={cv} label="68 pontos faciais" />

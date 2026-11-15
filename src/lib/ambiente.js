@@ -1,5 +1,4 @@
-// Dados ambientais (Nível 2: monitoramento; Nível 3: inteligência e riscos).
-// Todos ficam na coleção "ambiente" do Firestore; o campo `tipo` diz o que cada documento é.
+
 export const TIPOS = ['alerta', 'ocorrencia', 'agua', 'indicador', 'contaminante', 'risco', 'relatorio'];
 
 const plain = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -19,7 +18,6 @@ function when(v) {
 
 const SEV = ['baixa', 'media', 'alta', 'critica'];
 
-/** Converte itens brutos (JSON) em documentos válidos. Retorna { ok, skipped }. */
 export function mapAmbiente(items) {
   const ok = [], skipped = [];
   const now = Date.now();
@@ -70,7 +68,7 @@ export function mapAmbiente(items) {
   return { ok, skipped };
 }
 
-/** Qualidade do ar pela escala AQI dos EUA (usada pelo serviço Open-Meteo). */
+
 export function aqiCategory(aqi) {
   if (aqi == null) return { label: 'Sem dado', tone: 'muted' };
   if (aqi <= 50) return { label: 'Boa', tone: 'ok' };

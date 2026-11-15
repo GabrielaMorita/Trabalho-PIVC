@@ -1,11 +1,11 @@
 // Prova de vida simples baseada nos 68 pontos faciais: girar o rosto para o lado sorteado.
-// eyeAspect (EAR) não faz parte da prova de vida; segue disponível para a tela Pipeline.
+
 const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function ear(p, o) {
   return (d(p[o + 1], p[o + 5]) + d(p[o + 2], p[o + 4])) / (2 * d(p[o], p[o + 3]));
 }
-export const eyeAspect = (p) => (ear(p, 36) + ear(p, 42)) / 2;
+// export const eyeAspect = (p) => (ear(p, 36) + ear(p, 42)) / 2;
 
 /** Índice de giro horizontal: ~0 de frente; negativo = usuário girou para a direita dele. */
 export function yawIndex(p) {
