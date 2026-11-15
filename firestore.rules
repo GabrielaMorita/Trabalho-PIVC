@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // O app não usa login do Firebase, então as seis coleções ficam abertas ao cliente.
+    // Tudo fora delas é negado.
+    match /users/{id}    { allow read, write: if true; }
+    match /logs/{id}     { allow read, write: if true; }
+    match /config/{id}   { allow read, write: if true; }
+    match /noticias/{id} { allow read, write: if true; }
+    match /toxinas/{id}  { allow read, write: if true; }
+    match /ambiente/{id} { allow read, write: if true; }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
