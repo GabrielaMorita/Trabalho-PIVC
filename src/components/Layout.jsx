@@ -61,16 +61,16 @@ export default function Layout() {
           ) : (
             <span className="lock-state" role="status"><span>Trancado</span></span>
           )}
-          <button className="icon-btn" onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+          {/* <button className="icon-btn" onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
             aria-label={theme === 'dark' ? 'Mudar para o tema claro' : 'Mudar para o tema escuro'}>
             {theme === 'dark' ? 'Claro' : 'Escuro'}
-          </button>
+          </button> */}
           <span className="divider" aria-hidden="true" />
-          <button className="avatar-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}
+          {/* <button className="avatar-btn" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}
             aria-label={session ? `Menu de ${session.name}` : 'Menu'}>
             <span className="avatar">{session ? initials(session.name) : 'GA'}</span>
             <span className="caret" aria-hidden="true" />
-          </button>
+          </button> */}
           {open && (
             <div className="menu" role="menu">
               {session ? (
