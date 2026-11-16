@@ -25,7 +25,7 @@ function faceQuality(canvas, box) {
 }
 
 export default function Cadastro() {
-  const { users, settings, bootstrap, addUser, updateUser, notify } = useApp();
+  const { users, settings, bootstrap, isAdmin, addUser, updateUser, notify } = useApp();
   const [params] = useSearchParams();
   const editingId = params.get('id');
   const editing = users.find((u) => u.id === editingId) || null;
@@ -159,7 +159,7 @@ export default function Cadastro() {
     if (editing) { updateUser(editing.id, data); notify(`Cadastro de ${data.name} atualizado.`); }
     else { addUser(data); notify(`${data.name} cadastrado(a) com ${samples.length} amostras.`); }
     cam.stop();
-    nav('/usuarios');
+    nav(backTo);
   }
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -167,6 +167,8 @@ export default function Cadastro() {
   const prompt = SAMPLE_PROMPTS[Math.min(samples.length, SAMPLE_PROMPTS.length - 1)];
   const canShoot = cam.active && engine.ready && live.faces === 1 && !busy;
   const lockLevel = bootstrap && !editing;
+  // "Pessoas autorizadas" é só do ministro; os demais voltam ao Acesso.
+  const backTo = isAdmin ? '/usuarios' : '/acesso';
   // Novo cadastro é livre; só editar alguém já cadastrado exige o ministro.
   const Gate = editingId ? AdminGate : Fragment;
   const gateProps = editingId ? { title: 'A edição de cadastros' } : {};
@@ -245,7 +247,7 @@ export default function Cadastro() {
         </section>
 
         <div className="actions end form-actions">
-          <Link className="btn btn-ghost" to="/usuarios" onClick={cam.stop}>Cancelar</Link>
+          <Link className="btn btn-ghost" to={backTo} onClick={cam.stop}>Cancelar</Link>
           <button type="submit" className="btn btn-primary"> {editing ? 'Salvar alterações' : 'Salvar cadastro'}</button>
         </div>
       </form>
