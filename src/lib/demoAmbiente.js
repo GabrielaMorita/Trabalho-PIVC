@@ -1,15 +1,7 @@
 
-// Base de informações ambientais e científicas.
-// Não contém medições, ocorrências ou alertas ambientais fictícios.
-// Dados ambientais reais devem ser inseridos a partir de fontes oficiais.
 
 export function demoAmbiente() {
   const out = [];
-
-  // Informações científicas sobre contaminantes.
-  // Os impactos e métodos são referências gerais.
-  // A aplicação não deve interpretá-los como resultados de análises laboratoriais.
-
   [
     [
       'Mercúrio',

@@ -1,104 +1,106 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useApp } from '../AppContext.jsx';
-import { useAmbiente } from '../hooks/useAmbiente.js';
-import { fmtDate, riskLevel, riskScore } from '../lib/ambiente.js';
-import { MatrizRisco } from './AmbienteCharts.jsx';
+import { useToxinas } from '../hooks/useToxinas.js';
 
 const plain = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-const SEV = { baixa: ['Baixa', 'ok', 1], media: ['Média', 'warn', 2], alta: ['Alta', 'no', 3], critica: ['Crítica', 'no', 4] };
-const Tag = ({ tone, children }) => <span className={`tag t-${tone}`}>{children}</span>;
+const PAGE = 50;
 const url = (u) => (/^https?:\/\//i.test(u || '') ? u : '');
 
-/** Compartimento do Nível 3: inteligência e riscos. As fichas de toxinas aparecem logo abaixo (Toxinas.jsx). */
-export default function Inteligencia() {
-  const { isAdmin } = useApp();
-  const { by, loading, error, hasDemo, list } = useAmbiente();
-  const [q, setQ] = useState('');
-  const term = plain(q);
-  const cont = useMemo(() => by.contaminante.filter((c) => !term || plain(`${c.nome} ${c.classe} ${(c.ocorreEm || []).join(' ')} ${(c.metodosDeteccao || []).join(' ')}`).includes(term)), [by.contaminante, term]);
-  const impactos = useMemo(() => [...by.contaminante].sort((a, b) => (SEV[b.gravidade]?.[2] || 0) - (SEV[a.gravidade]?.[2] || 0)), [by.contaminante]);
-  const riscos = useMemo(() => [...by.risco].sort((a, b) => riskScore(b) - riskScore(a)), [by.risco]);
-  const empty = !loading && !error && list.length === 0;
+/** Regras do catálogo: nível mínimo de acesso + divisões permitidas. O compartimento aberto define o que aparece. */
+function canSee(t, targetLevel, division) {
+  if (targetLevel === 3) return true;
+  if (t.status && t.status !== 'publicada') return false;
+  if (Number(t.nivelMinimoAcesso ?? 1) > targetLevel) return false;
+  const divs = Array.isArray(t.divisoes) && t.divisoes.length ? t.divisoes : t.divisao ? [t.divisao] : [];
+  if (!divs.length) return true;
+  return targetLevel === 2 && divs.some((d) => plain(d) === plain(division));
+}
 
+const List = ({ title, items }) => (items?.length ? <div className="tox-sec"><h4>{title}</h4><ul>{items.map((x) => <li key={x}>{x}</li>)}</ul></div> : null);
+const Text = ({ title, text }) => (text ? <div className="tox-sec"><h4>{title}</h4><p>{text}</p></div> : null);
+
+function Detail({ t }) {
+  const extras = t.campos && Object.entries(t.campos);
+  const empty = !t.descricaoCompleta && !t.resumo && !t.descricao && !extras?.length;
   return (
-    <div className="amb">
-      <h2 className="amb-title">Inteligência e riscos</h2>
-      <p className="muted">Informações técnicas e análises aprofundadas sobre contaminantes, riscos e impactos de substâncias tóxicas. As fichas de toxinas e substâncias químicas estão logo abaixo.</p>
-      {hasDemo && <p className="banner-demo" role="note">Parte dos dados abaixo é <b>fictícia, de demonstração</b>.</p>}
-      {error && <p role="alert" style={{ color: 'var(--no)' }}>{error}</p>}
-      {loading && <p className="muted" role="status">Carregando dados…</p>}
-      {empty && (
-        <div className="empty slim">
-          <h3>Ainda não há dados de inteligência cadastrados</h3>
-          <p>Contaminantes, riscos e relatórios vêm do banco de dados.</p>
-          {isAdmin && <Link className="btn btn-primary" to="/importacao">Importar dados ambientais</Link>}
+    <div className="d-body">
+      {t.nomeCientifico && <p><em>{t.nomeCientifico}</em></p>}
+      {t.origem && <Text title="Origem" text={[t.origem.tipo, t.origem.agente].filter(Boolean).join(' · ') + (t.origem.descricao ? ` — ${t.origem.descricao}` : '')} />}
+      <Text title="Resumo" text={t.resumo || t.descricao} />
+      <Text title="Descrição" text={t.descricaoCompleta} />
+      <Text title="Mecanismo geral" text={t.mecanismoGeral} />
+      <List title="Efeitos à saúde" items={t.efeitosSaude} />
+      <List title="Vias de exposição" items={t.viasExposicao} />
+      {t.aplicacoesLegitimas?.length > 0 && (
+        <div className="tox-sec"><h4>Aplicações legítimas</h4>
+          <ul>{t.aplicacoesLegitimas.map((a, i) => <li key={i}><b>{a.area}:</b> {a.descricao}{a.status && <> <em>({a.status})</em></>}</li>)}</ul>
         </div>
       )}
-
-      {by.contaminante.length > 0 && (
-        <section aria-labelledby="int-cont">
-          <div className="news-bar"><h3 id="int-cont">Identificação de contaminantes</h3>
-            <input type="search" className="news-search" placeholder="Buscar contaminante" aria-label="Buscar contaminante" value={q} onChange={(e) => setQ(e.target.value)} />
-          </div>
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead><tr><th>Contaminante</th><th>Tipo</th><th>Onde ocorre</th><th>Como identificar</th></tr></thead>
-              <tbody>
-                {cont.map((c) => (
-                  <tr key={c.id}><td><b>{c.nome}</b></td><td>{c.classe}</td><td>{(c.ocorreEm || []).join(', ')}</td><td>{(c.metodosDeteccao || []).join('; ')}</td></tr>
-                ))}
-                {cont.length === 0 && <tr><td colSpan={4} className="muted">Nenhum contaminante encontrado para “{q}”.</td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      {t.casosReais?.length > 0 && (
+        <div className="tox-sec"><h4>Casos reais</h4>
+          <ul>{t.casosReais.map((c, i) => <li key={i}><b>{c.contexto}:</b> {c.descricao} {url(c.url) && <a href={c.url} target="_blank" rel="noopener noreferrer">{c.fonte || 'fonte'}</a>}</li>)}</ul>
+        </div>
       )}
-
-      {riscos.length > 0 && (
-        <section aria-labelledby="int-risco"><h3 id="int-risco">Análise de riscos de contaminação</h3>
-          <p className="muted small" style={{ marginTop: -4 }}>Cada cenário é posicionado pela probabilidade e pela severidade (1 a 5); o número na matriz corresponde à primeira coluna da tabela.</p>
-          <MatrizRisco items={riscos} />
-          <div className="tbl-wrap">
-            <table className="tbl">
-              <thead><tr><th>#</th><th>Cenário</th><th>Local</th><th>P × S</th><th>Nível</th><th>Medidas</th></tr></thead>
-              <tbody>
-                {riscos.map((r, i) => { const l = riskLevel(riskScore(r)); return (
-                  <tr key={r.id}><td>{i + 1}</td><td><b>{r.cenario}</b></td><td>{r.local}</td><td>{r.probabilidade} × {r.severidade}</td><td><Tag tone={l.tone}>{l.label}</Tag></td><td>{r.medidas}</td></tr>
-                ); })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <Text title="Prevenção" text={t.prevencao} />
+      <Text title="Resposta a emergência" text={t.respostaEmergencia} />
+      {t.referencias?.length > 0 && (
+        <div className="tox-sec"><h4>Referências</h4>
+          <ul>{t.referencias.map((r, i) => <li key={i}>{url(r.url) ? <a href={r.url} target="_blank" rel="noopener noreferrer">{r.titulo || r.url}</a> : r.titulo} {r.instituicao && `· ${r.instituicao}`}{r.ano && ` (${r.ano})`}</li>)}</ul>
+        </div>
       )}
-
-      {impactos.length > 0 && (
-        <section aria-labelledby="int-imp"><h3 id="int-imp">Impactos de substâncias tóxicas</h3>
-          <ul className="cards">
-            {impactos.map((c) => { const [lbl, tone] = SEV[c.gravidade] || SEV.media; return (
-              <li key={c.id} className="card-sm">
-                <div className="alert-top"><b>{c.nome}</b><Tag tone={tone}>Gravidade {lbl.toLowerCase()}</Tag></div>
-                <small className="muted">{c.classe}</small>
-                <p>{c.impactos}</p>
-              </li>
-            ); })}
-          </ul>
-        </section>
+      {url(t.imagem?.downloadURL) && (
+        <figure className="tox-fig"><img src={t.imagem.downloadURL} alt={t.imagem.alt || ''} loading="lazy" referrerPolicy="no-referrer" />{t.imagem.legenda && <figcaption>{t.imagem.legenda}</figcaption>}</figure>
       )}
-
-      {by.relatorio.length > 0 && (
-        <section aria-labelledby="int-rel"><h3 id="int-rel">Relatórios técnicos ambientais</h3>
-          <ul className="alertas">
-            {by.relatorio.map((r) => (
-              <li key={r.id}>
-                <div className="alert-top"><b>{url(r.link) ? <a href={r.link} target="_blank" rel="noopener noreferrer">{r.titulo}</a> : r.titulo}</b></div>
-                <p>{r.resumo}</p>
-                <small className="muted">{[r.autor, fmtDate(r.data), (r.tags || []).map((t) => `#${t}`).join(' ')].filter(Boolean).join(' · ')}</small>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {extras?.length > 0 && (
+        <dl className="small tox-sec">{extras.map(([k, v]) => <div key={k}><dt style={{ display: 'inline', fontWeight: 600 }}>{k.replace(/_/g, ' ')}: </dt><dd style={{ display: 'inline', margin: 0 }}>{v}</dd></div>)}</dl>
       )}
+      {empty && <p className="muted small">Sem mais detalhes.</p>}
     </div>
+  );
+}
+
+/** Toxinas do banco visíveis no compartimento aberto (Nível 1, Nível 2 da divisão ou Nível 3). */
+export default function Toxinas({ targetLevel, division }) {
+  const { list, loading, error } = useToxinas();
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState(null);
+  const [limit, setLimit] = useState(PAGE);
+
+  const mine = useMemo(() => list.filter((t) => canSee(t, targetLevel, division)), [list, targetLevel, division]);
+  const term = plain(q);
+  const shown = term ? mine.filter((t) => plain(`${t.nome} ${t.nomeCientifico || ''} ${t.classe} ${t.risco} ${(t.divisoes || []).join(' ')} ${t.divisao || ''}`).includes(term)) : mine;
+
+  // sem nenhuma toxina cadastrada para este compartimento, o Nível 1 não mostra seção vazia
+  if (!loading && !error && mine.length === 0 && targetLevel === 1) return null;
+
+  return (
+    <section className="news" aria-labelledby="tox-h" style={{ marginTop: 34 }}>
+      <div className="news-bar">
+        <h2 id="tox-h">Toxinas catalogadas <span className="muted small">({mine.length})</span></h2>
+        {mine.length > 0 && <input type="search" className="news-search" placeholder="Buscar toxina" aria-label="Buscar toxina" value={q} onChange={(e) => { setQ(e.target.value); setLimit(PAGE); }} />}
+      </div>
+      {loading && <p className="muted" role="status">Carregando toxinas…</p>}
+      {error && <p role="alert" style={{ color: 'var(--no)' }}>{error}</p>}
+      {!loading && !error && mine.length === 0 && (
+        <p className="muted">{targetLevel === 3 ? 'Nenhuma toxina cadastrada. Use Importação em massa para enviar o catálogo.' : 'Nenhuma toxina liberada para este compartimento.'}</p>
+      )}
+      {shown.length > 0 && (
+        <ul className="dossiers">
+          {shown.slice(0, limit).map((t) => (
+            <li key={t.id} className={open === t.id ? 'open' : ''}>
+              <button onClick={() => setOpen(open === t.id ? null : t.id)} aria-expanded={open === t.id}>
+                <span className="d-title">{t.nome}</span>
+                <span className="d-status">
+                  {t.risco && <span className="risk" data-r={plain(t.risco)}>{t.risco}</span>} {t.classe}
+                </span>
+                <time>{t.divisoes?.length ? t.divisoes.join(', ') : t.divisao || ''}</time>
+              </button>
+              {open === t.id && <Detail t={t} />}
+            </li>
+          ))}
+        </ul>
+      )}
+      {shown.length > limit && <button className="btn btn-ghost" onClick={() => setLimit((l) => l + PAGE)}>Mostrar mais ({shown.length - limit})</button>}
+      {mine.length > 0 && shown.length === 0 && <p className="muted">Nenhuma toxina encontrada para “{q}”.</p>}
+    </section>
   );
 }

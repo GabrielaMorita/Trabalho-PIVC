@@ -16,9 +16,9 @@ export default function Protegida({ min, children }) {
     );
   }
   return (
-    <>
+    <div className="page">
       <Link className="back-link" to="/painel">Voltar ao painel</Link>
       {children}
-    </>
+    </div>
   );
 }

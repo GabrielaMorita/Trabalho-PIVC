@@ -9,6 +9,7 @@ const initials = (name) => String(name || '').split(/\s+/).filter(Boolean).slice
 
 const TABS = [
   { to: '/acesso', label: 'Acesso' },
+  { to: '/cadastro', label: 'Cadastrar pessoa' },
   { to: '/pipeline', label: 'Laboratório de imagem' },
   { to: '/registros', label: 'Registros' },
 ];

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../AppContext.jsx';
 import { useCamera } from '../hooks/useCamera.js';
@@ -167,9 +167,12 @@ export default function Cadastro() {
   const prompt = SAMPLE_PROMPTS[Math.min(samples.length, SAMPLE_PROMPTS.length - 1)];
   const canShoot = cam.active && engine.ready && live.faces === 1 && !busy;
   const lockLevel = bootstrap && !editing;
+  // Novo cadastro é livre; só editar alguém já cadastrado exige o ministro.
+  const Gate = editingId ? AdminGate : Fragment;
+  const gateProps = editingId ? { title: 'A edição de cadastros' } : {};
 
   return (
-    <AdminGate title="O cadastro de rostos">
+    <Gate {...gateProps}>
       <header className="page-head">
         <h1>{editing ? `Editar ${editing.name}` : 'Cadastrar rosto'}</h1>
         <p>{editing ? 'Altere os dados ou capture novas amostras para substituir as atuais.' : `Preencha os dados e capture ${SAMPLES_REQUIRED} amostras do rosto, em ângulos levemente diferentes.`}</p>
@@ -246,6 +249,6 @@ export default function Cadastro() {
           <button type="submit" className="btn btn-primary"> {editing ? 'Salvar alterações' : 'Salvar cadastro'}</button>
         </div>
       </form>
-    </AdminGate>
+    </Gate>
   );
 }
