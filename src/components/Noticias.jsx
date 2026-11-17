@@ -14,8 +14,11 @@ export default function Noticias() {
 
   return (
     <section aria-labelledby="news-h" className="news">
-      <div className="news-bar">
-        <h2 id="news-h">Notícias de meio ambiente</h2>
+      <div className="page-head row">
+        <div>
+          <h1 id="news-h">Notícias de meio ambiente</h1>
+          <p>Acompanhe as principais notícias sobre meio ambiente cadastradas pelo ministério.</p>
+        </div>
         {news.length > 0 && (
           <input type="search" className="news-search" placeholder="Buscar notícia" aria-label="Buscar notícia"
             value={q} onChange={(e) => setQ(e.target.value)} />
