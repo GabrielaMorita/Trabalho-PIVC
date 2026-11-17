@@ -1,9 +1,10 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
-// base './' permite publicar a pasta dist em qualquer subpasta (ex.: htdocs do XAMPP).
 export default defineConfig({
-  base: './',
+  base: '/Trabalho-PIVC/',
   plugins: [react()],
-  build: { chunkSizeWarningLimit: 2500 },
-});
+  build: {
+    chunkSizeWarningLimit: 2500
+  }
+})
