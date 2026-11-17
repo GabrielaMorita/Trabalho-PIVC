@@ -27,7 +27,7 @@ export default function Inteligencia() {
         <h1>Inteligência e riscos</h1>
         <p>Informações técnicas e análises aprofundadas sobre contaminantes, riscos e impactos de substâncias tóxicas. As fichas de toxinas e substâncias químicas estão logo abaixo.</p>
       </div>
-      {hasDemo && <p className="banner-demo" role="note">Parte dos dados abaixo é <b>fictícia, de demonstração</b>.</p>}
+      {/* {hasDemo && <p className="banner-demo" role="note">Parte dos dados abaixo é <b>fictícia, de demonstração</b>.</p>} */}
       {error && <p role="alert" style={{ color: 'var(--no)' }}>{error}</p>}
       {loading && <p className="muted" role="status">Carregando dados…</p>}
       {empty && (

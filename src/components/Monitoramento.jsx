@@ -31,7 +31,7 @@ export default function Monitoramento({ painel }) {
         <h2 className="amb-title">Monitoramento ambiental</h2>
         <p>Acompanhe as condições ambientais, as áreas afetadas, a qualidade da água e a evolução dos principais indicadores.</p>
       </div>
-      {hasDemo && <p className="banner-demo" role="note">Parte dos dados abaixo é <b>fictícia, de demonstração</b> (alertas, ocorrências, água e indicadores).</p>}
+      {/* {hasDemo && <p className="banner-demo" role="note">Parte dos dados abaixo é <b>fictícia, de demonstração</b> (alertas, ocorrências, água e indicadores).</p>} */}
       {error && <p role="alert" style={{ color: 'var(--no)' }}>{error}</p>}
 
       {show('ar') && <section aria-labelledby="amb-ar"><h3 id="amb-ar">Condições em tempo real</h3><QualidadeAr /></section>}
